@@ -17,7 +17,7 @@ const Login = () => {
     setLoading(true);
 
     try {
-      const response = await fetch('http://localhost:3001/api/auth/login', {
+      const response = await fetch('https://retail-sales-management-system-6ei2.onrender.com/api/auth/login', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
