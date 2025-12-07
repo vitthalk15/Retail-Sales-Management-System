@@ -1,0 +1,14 @@
+{
+  "name": "retail-sales",
+  "version": "1.0.0",
+  "description": "Retail Sales Management System - Full-stack application with search, filtering, sorting, and pagination",
+  "scripts": {
+    "install:all": "cd backend && npm install && cd ../frontend && npm install",
+    "start:backend": "cd backend && npm start",
+    "start:frontend": "cd frontend && npm run dev",
+    "build:frontend": "cd frontend && npm run build"
+  },
+  "keywords": ["retail", "sales", "management", "react", "nodejs"],
+  "author": "",
+  "license": "ISC"
+}
