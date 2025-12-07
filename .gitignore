@@ -23,5 +23,6 @@ Thumbs.db
 
 # Data files (keep structure, ignore actual data)
 backend/data/*.json
+backend/data/*.csv
 !backend/data/.gitkeep
 
