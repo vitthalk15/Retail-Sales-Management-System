@@ -54,20 +54,23 @@ Pagination is implemented with a page size of 10 items per page. The system uses
    PORT=3001
    ```
 
-4. **Add Data**:
+4. **Configure Frontend** (Optional for local development):
+   The frontend defaults to `http://localhost:3001/api`. No `.env` file needed unless you want to override this.
+
+5. **Add Data**:
    Place your CSV file in `backend/data/` folder. The system will automatically import it on first startup.
 
-5. **Start Backend**:
+6. **Start Backend**:
    ```bash
    cd backend
    npm start
    ```
 
-6. **Start Frontend**:
+7. **Start Frontend**:
    ```bash
    cd frontend
    npm run dev
    ```
 
-7. **Access Application**:
+8. **Access Application**:
    Open `http://localhost:3000` in your browser.
