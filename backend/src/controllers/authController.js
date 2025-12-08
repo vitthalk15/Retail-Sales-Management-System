@@ -42,6 +42,22 @@ export const signup = async (req, res) => {
     });
   } catch (error) {
     console.error('Signup error:', error?.message || error);
+
+    // Handle common Mongo/Mongoose errors with clearer responses
+    if (error?.name === 'ValidationError') {
+      const messages = Object.values(error.errors || {}).map(e => e.message);
+      return res.status(400).json({ 
+        error: 'Validation failed',
+        details: messages.join(', ')
+      });
+    }
+
+    if (error?.code === 11000) { // duplicate key
+      return res.status(400).json({ 
+        error: 'User already exists with this email'
+      });
+    }
+
     res.status(500).json({ 
       error: 'Server error during signup', 
       details: error?.message || 'Unknown error' 
