@@ -16,6 +16,9 @@ try {
   Sales = mongoose.model('Sales', salesSchema);
 }
 
+// Limit how many records to import to avoid exhausting free-tier quota
+const MAX_IMPORT_RECORDS = parseInt(process.env.MAX_IMPORT_RECORDS || '50000', 10);
+
 export async function importCSVToMongoDB() {
   const dataDir = path.join(__dirname, '../../data');
   
@@ -55,6 +58,7 @@ export async function importCSVToMongoDB() {
     let recordCount = 0;
     const batchSize = 1000;
     let batch = [];
+    let reachedLimit = false;
     
     const parser = fs
       .createReadStream(csvPath, { encoding: 'utf8' })
@@ -77,6 +81,33 @@ export async function importCSVToMongoDB() {
       parser.on('data', async (record) => {
         batch.push(record);
         recordCount++;
+        
+        // Stop early if we hit the configured cap
+        if (recordCount >= MAX_IMPORT_RECORDS) {
+          reachedLimit = true;
+          parser.pause();
+          try {
+            if (batch.length > 0) {
+              await Sales.insertMany(batch, { ordered: false });
+              batch = [];
+            }
+          } catch (error) {
+            if (error.code !== 11000) {
+              if (error.message && error.message.includes('space quota')) {
+                console.error(`\n\n⚠️  MongoDB Atlas Storage Quota Reached during capped import.`);
+                console.error(`   Imported approximately ${recordCount.toLocaleString()} records before hitting the limit.`);
+                parser.destroy();
+                resolve(false);
+                return;
+              }
+              console.error('\n❌ Error inserting final capped batch:', error.message);
+            }
+          }
+          console.log(`\n✅ Reached MAX_IMPORT_RECORDS=${MAX_IMPORT_RECORDS.toLocaleString()}. Stopping import to conserve quota.`);
+          parser.destroy();
+          resolve(true);
+          return;
+        }
         
         if (batch.length >= batchSize) {
           parser.pause();
@@ -130,7 +161,10 @@ export async function importCSVToMongoDB() {
         }
         
         const finalCount = await Sales.countDocuments();
-        console.log(`\n\n✅ Successfully imported ${finalCount.toLocaleString()} records to MongoDB`);
+        const sampleNote = reachedLimit 
+          ? ` (capped at ${MAX_IMPORT_RECORDS.toLocaleString()} to avoid quota issues)` 
+          : '';
+        console.log(`\n\n✅ Successfully imported ${finalCount.toLocaleString()} records to MongoDB${sampleNote}`);
         console.log(`📊 Collection: sales\n`);
         resolve(true);
       });
