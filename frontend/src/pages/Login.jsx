@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import { useToast } from '../hooks/useToast';
 import ToastContainer from '../components/ToastContainer';
+import { authAPI } from '../services/api';
 
 const Login = () => {
   const [email, setEmail] = useState('');
@@ -17,43 +18,21 @@ const Login = () => {
     setLoading(true);
 
     try {
-      const response = await fetch('https://retail-sales-management-system-6ei2.onrender.com/api/auth/login', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({ email, password }),
-      });
+      const response = await authAPI.login({ email, password });
 
-      let data;
-      try {
-        data = await response.json();
-      } catch (jsonError) {
-        const text = await response.text();
-        throw new Error(text || 'Invalid response from server');
-      }
-
-      if (response.ok) {
-        if (data.token && data.user) {
-          localStorage.setItem('token', data.token);
-          localStorage.setItem('user', JSON.stringify(data.user));
-          // Dispatch custom event to notify App component
-          window.dispatchEvent(new Event('storage'));
-          showSuccess('Login successful! Redirecting...');
-          // Use window.location for reliable navigation that forces re-evaluation
-          setTimeout(() => {
-            window.location.href = '/';
-          }, 1000);
-        } else {
-          throw new Error('Invalid response from server');
-        }
+      const { data } = response || {};
+      if (data?.token && data?.user) {
+        localStorage.setItem('token', data.token);
+        localStorage.setItem('user', JSON.stringify(data.user));
+        // Dispatch custom event to notify App component
+        window.dispatchEvent(new Event('storage'));
+        showSuccess('Login successful! Redirecting...');
+        // Use window.location for reliable navigation that forces re-evaluation
+        setTimeout(() => {
+          window.location.href = '/';
+        }, 1000);
       } else {
-        let errorMessage = data.error || 'Login failed';
-        if (response.status === 503) {
-          errorMessage = 'Database not connected. Please set up MongoDB.';
-        }
-        setError(errorMessage);
-        showError(errorMessage);
+        throw new Error('Invalid response from server');
       }
     } catch (err) {
       const errorMessage = err.message || 'Network error. Please check if the backend server is running.';

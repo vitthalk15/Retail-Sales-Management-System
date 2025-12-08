@@ -16,7 +16,11 @@ export const signup = async (req, res) => {
       });
     }
 
-    const { name, email, password } = req.body;
+    const { name, email, password } = req.body || {};
+
+    if (!name || !email || !password) {
+      return res.status(400).json({ error: 'Name, email, and password are required' });
+    }
 
     const existingUser = await User.findOne({ email });
     if (existingUser) {
@@ -37,8 +41,11 @@ export const signup = async (req, res) => {
       }
     });
   } catch (error) {
-    console.error('Signup error:', error);
-    res.status(500).json({ error: 'Server error during signup' });
+    console.error('Signup error:', error?.message || error);
+    res.status(500).json({ 
+      error: 'Server error during signup', 
+      details: error?.message || 'Unknown error' 
+    });
   }
 };
 
@@ -50,7 +57,11 @@ export const login = async (req, res) => {
       });
     }
 
-    const { email, password } = req.body;
+    const { email, password } = req.body || {};
+
+    if (!email || !password) {
+      return res.status(400).json({ error: 'Email and password are required' });
+    }
 
     const user = await User.findOne({ email });
     if (!user) {
@@ -73,7 +84,10 @@ export const login = async (req, res) => {
       }
     });
   } catch (error) {
-    console.error('Login error:', error);
-    res.status(500).json({ error: 'Server error during login' });
+    console.error('Login error:', error?.message || error);
+    res.status(500).json({ 
+      error: 'Server error during login',
+      details: error?.message || 'Unknown error'
+    });
   }
 };

@@ -33,4 +33,9 @@ export const salesAPI = {
   getFilters: () => api.get('/api/sales/filters')
 };
 
+export const authAPI = {
+  signup: (payload) => api.post('/api/auth/signup', payload),
+  login: (payload) => api.post('/api/auth/login', payload)
+};
+
 export default api;
